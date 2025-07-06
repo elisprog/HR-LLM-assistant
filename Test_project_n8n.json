@@ -1,0 +1,321 @@
+{
+  "name": "Test_project",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-hr",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ef0e760c-70f6-46c3-8750-ddeebaf9b9c6",
+      "name": "Webhook",
+      "webhookId": "24aa968b-cb03-4f80-bb04-1107fb9cf4f9"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "= {{ $node[\"HTTP Request\"].json.choices[0].message.content }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        440,
+        0
+      ],
+      "id": "e2f828bd-22e0-4843-9223-88419fce8f35",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ca4cf739cc9432abf8059f919c498802f87c0f01d8b47bdb058dc40bbd581700"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\nJSON.stringify({\nmodel: \"deepseek-ai/DeepSeek-V3\",\nmessages: [\n{\nrole: \"system\",\ncontent: \"Ты опытный HR-агент. Анализируй соответствие резюме и вакансий, давай краткое обоснование.\"\n},\n{\nrole: \"user\",\ncontent: \"Вакансия:\\n\" + $json.body.jobDescription + \"\\n\\nРезюме:\\n\" + $json.body.resume + \"\\n\\nПроанализируй и оцени: Подходит / Частично подходит / Не подходит. Объясни почему. В ответе используй одинаковый кегль, но дели текст по параграфам по смыслу. Хочу, чтобы ты отвечал без разметки markdown\"\n}\n],\ntemperature: 0.3,\nmax_tokens: 500\n})\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        0
+      ],
+      "id": "a9c344d6-7acf-4de0-a1c5-ce75b90fbef1",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Сравнить резюме с вакансией \n**В терминале** запускаем команду с текстом вакансии и резюме:\ncurl -X POST \"https://elisele.app.n8n.cloud/webhook-test/test-hr\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"jobDescription\": \"Ждем талантливых спортсменов интересующихся футболом и каратэ от 16 лет\", \"resume\": \"Играю в футбол мне 15 лет\" }'\n",
+        "height": 180,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -660,
+        -40
+      ],
+      "typeVersion": 1,
+      "id": "7670428b-f2f3-4e2b-a62f-b4dde057ad5d",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## 2. Вопросы кандидатам\ncurl -X POST https://elisele.app.n8n.cloud/webhook-test/jobDescription \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobDescription\": \"Требуется кассир на ночные смены в супермаркет оплата почасовая по договоренности\"\n  }'",
+        "height": 220,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -660,
+        220
+      ],
+      "typeVersion": 1,
+      "id": "038e2d62-5e2f-4542-989a-e4ee2c623ecd",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "jobDescription",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        240
+      ],
+      "id": "d3c31bb4-22a5-40aa-927b-a52b672344a9",
+      "name": "generateDescription",
+      "webhookId": "f57c78e3-f178-4da8-80c6-2c2188bc9880"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ca4cf739cc9432abf8059f919c498802f87c0f01d8b47bdb058dc40bbd581700"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты опытный HR-интервьюер. На основе описания вакансии формируй качественные вопросы для интервью.\"\n    },\n    {\n      role: \"user\",\n      content: \"Ты опытный HR-интервьюер. На основе следующего описания вакансии сгенерируй 10 вопросов для интервью, разделив их по категориям:\\\\n\\\\n- Hard Skills\\\\n- Soft Skills\\\\n- Мотивация\\\\n- Поведенческие\\\\n\\\\nОписание вакансии:\\\\n\" + $json.body.jobDescription + \"\\\\n\\\\nСделай вопросы лаконичными и по делу. В ответе используй одинаковый кегль. Хочу чтобы ты отвечал без разметки markdown. \"\n    }\n  ],\n  temperature: 0.4,\n  max_tokens: 600\n})\n}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        240
+      ],
+      "id": "730a493c-66d9-4ebf-80fc-27acc0915b55",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{$node[\"HTTP Request1\"].json[\"choices\"][0][\"message\"][\"content\"]}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        440,
+        240
+      ],
+      "id": "855cbeb7-88f4-45b8-bc53-4b8618d84372",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "## 3.  Составление текста вакансии по данным или доработка текста вакансии\n\ncurl -X POST https://elisele.app.n8n.cloud/webhook-test/textEditor \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobDescription\": \"Frontend Developer Разработка UI на React Опыт работы от 3 лет, знание React, TypeScript\"\n  }'",
+        "height": 240,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -660,
+        520
+      ],
+      "typeVersion": 1,
+      "id": "c0dcfe6d-96b6-4f8b-a5f9-38906408e5c1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.together.xyz/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer ca4cf739cc9432abf8059f919c498802f87c0f01d8b47bdb058dc40bbd581700"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты профессиональный HR-копирайтер. Генерируй и улучшай описания вакансий. Возвращай ответы строго в формате JSON, без лишнего текста, без обёртки, без кода, без ```json и без пояснений.\"\n    },\n    {\n      role: \"user\",\n      content:\n        \"На вход ты получаешь:\\n\" +\n        \"- Оптсание вакансии: \" + $json.body.jobDescription + \"\\n\" +\n        ($json.body.originalDescription ? \"- Исходное описание: \" + $json.body.originalDescription + \"\\n\" : \"\") +\n        \"\\nТвоя задача:\\n\" +\n        \"1. Если исходного описания нет или его недостаточно — сгенерируй новое описание вакансии.\\n\" +\n        \"2. Если оно есть — предложи улучшенные варианты.\\n\\n\" +\n        \"Ответ верни строго как валидный JSON без обёртки, без кода, без ```json и без пояснений.\\n\\n\" +\n        \"Следуй формату:\\n\\n\" +\n        `{\n  \"original\": \"Новое или улучшенное описание вакансии\",\n  \"variant_engaging\": \"Более привлекательный вариант\",\n  \"variant_simple\": \"Упрощённый вариант\",\n  \"variant_technical\": \"Технически точный вариант\"\n}`\n    }\n  ],\n  temperature: 0.4,\n  max_tokens: 700\n}) \n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        540
+      ],
+      "id": "8e4cfbdb-a4cf-4688-9b01-c612f218a9c1",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "textEditor",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        540
+      ],
+      "id": "fead9fa3-4c67-4486-ab68-3a4840ad5fc4",
+      "name": "textEditor",
+      "webhookId": "f57c78e3-f178-4da8-80c6-2c2188bc9880"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={\n  \"result\": {{$node[\"HTTP Request2\"].json[\"choices\"][0][\"message\"][\"content\"]}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        440,
+        540
+      ],
+      "id": "5a52d116-a1c8-4b1b-9f63-765c675c2f44",
+      "name": "Respond to Webhook2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "generateDescription": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "textEditor": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7e0886bd-c613-468c-b265-8c9995569fa2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "56c0e4473e29d4ff61294cd1122a3e6cda6cadddc35f0b6809e0f5010adeb641"
+  },
+  "id": "kYFgltPFoBVZVF4F",
+  "tags": []
+}
