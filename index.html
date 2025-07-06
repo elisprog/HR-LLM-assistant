@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HR-ассистент</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
   <div class="bg-white shadow-xl rounded-xl p-8 max-w-2xl w-full space-y-6">
@@ -13,7 +14,9 @@
     <div class="space-y-4">
       <textarea id="jobDescription" placeholder="Вакансия с описанием" class="w-full border p-2 rounded-md"></textarea>
       <textarea id="resume" placeholder="Резюме кандидата" class="w-full border p-2 rounded-md"></textarea>
+      <input type="file" id="pdfFile" accept=".pdf" class="w-full border p-2 rounded-md" />
     </div>
+
 
     <div class="flex flex-col sm:flex-row gap-4">
       <button onclick="sendData('compare')" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
@@ -27,96 +30,90 @@
       </button>
     </div>
 
-    <div id="status" class="text-center text-sm text-gray-600 mt-4"> Уже активировал n8n проект? Я готов к работе, запускай!</div>
+    <div id="status" class="text-center text-sm text-gray-600 mt-4">Я готов к работе, запускай!</div>
 
     <div class="mt-6">
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Ответ от агента:</h2>
       <pre id="response" class="bg-gray-100 border rounded-md p-4 text-sm text-gray-800 whitespace-pre-wrap overflow-auto max-h-96"></pre>
     </div>
   </div>
-  <script>
-    async function sendData(type) {
-  const jobDescription = document.getElementById("jobDescription").value.trim();
-  const resume = document.getElementById("resume").value.trim();
 
-  let url = "";
-  let payload = {};
+<script>
+  async function extractPdfText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = "";
 
-  if (type === "compare") {
-    url = "https://elisele.app.n8n.cloud/webhook/test-hr";
-    payload = { jobDescription, resume };
-  } else if (type === "questions") {
-    url = "https://elisele.app.n8n.cloud/webhook/jobDescription";
-    payload = { jobDescription };
-  } else if (type === "vacancy") {
-    url = "https://elisele.app.n8n.cloud/webhook/textEditor";
-    payload = { jobDescription };
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(" ");
+      fullText += pageText + "\n\n";
+    }
+
+    return fullText.trim();
   }
 
-  document.getElementById("status").innerText = "⏳ Отправка запроса...";
-  document.getElementById("response").innerText = "";
+  async function sendData(type) {
+    const jobDescription = document.getElementById("jobDescription").value.trim();
+    const resumeText = document.getElementById("resume").value.trim();
+    const pdfFile = document.getElementById("pdfFile").files[0];
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let resume = resumeText;
 
-    const text = await res.text();
-
-    if (res.ok) {
-      document.getElementById("status").innerText = "✅ Успешно!";
-
-      let data;
+    if (pdfFile && pdfFile.type === "application/pdf") {
       try {
-        data = JSON.parse(text);
+        const pdfText = await extractPdfText(pdfFile);
+        resume += "\n\n" + pdfText;
       } catch (e) {
-        data = null;
+        document.getElementById("status").innerText = "⚠️ Ошибка чтения PDF";
+        document.getElementById("response").innerText = e.toString();
+        return;
       }
+    }
 
-      if (data) {
-        function formatResult(obj) {
-          if (typeof obj === "string") return obj;
+    let url = "";
+    let payload = {};
 
-          if (typeof obj === "object" && obj !== null) {
-            let output = "";
-            for (const [key, value] of Object.entries(obj)) {
-              if (typeof value === "string") {
-                output += `${key}:\n${value}\n\n`;
-              } else if (typeof value === "object") {
-                output += `${key}:\n${formatResult(value)}\n\n`;
-              }
-            }
-            return output.trim();
-          }
-          return String(obj);
+    if (type === "compare") {
+      url = "https://elisele.app.n8n.cloud/webhook/test-hr";
+      payload = { jobDescription, resume };
+    } else if (type === "questions") {
+      url = "https://elisele.app.n8n.cloud/webhook/jobDescription";
+      payload = { jobDescription };
+    } else if (type === "vacancy") {
+      url = "https://elisele.app.n8n.cloud/webhook/textEditor";
+      payload = { jobDescription };
+    }
+
+    document.getElementById("status").innerText = "⏳ Отправка запроса...";
+    document.getElementById("response").innerText = "";
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+
+      if (res.ok) {
+        document.getElementById("status").innerText = "✅ Успешно!";
+        try {
+          const data = JSON.parse(text);
+          let outputText = data?.result || data?.message || JSON.stringify(data, null, 2);
+          document.getElementById("response").innerText = outputText;
+        } catch {
+          document.getElementById("response").innerText = text;
         }
-
-
-        let outputText = "";
-
-        if (data.result) {
-          outputText = formatResult(data.result);
-        } else if (data.message) {
-          outputText = data.message;
-        } else {
-          outputText = formatResult(data);
-        }
-
-        document.getElementById("response").innerText = outputText;
       } else {
+        document.getElementById("status").innerText = "❌ Ошибка ответа от сервера";
         document.getElementById("response").innerText = text;
       }
-
-    } else {
-      document.getElementById("status").innerText = "❌ Ошибка ответа от сервера";
-      document.getElementById("response").innerText = text;
+    } catch (e) {
+      document.getElementById("status").innerText = "⚠️ Сетевая ошибка";
+      document.getElementById("response").innerText = e.toString();
     }
-  } catch (e) {
-    document.getElementById("status").innerText = "⚠️ Сетевая ошибка";
-    document.getElementById("response").innerText = e.toString();
   }
-}
-
-  </script>
+</script>
