@@ -1,5 +1,5 @@
 {
-  "тame": "Test_project",
+  "name": "Test_project",
   "nodes": [
     {
       "parameters": {
@@ -52,13 +52,13 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{\nJSON.stringify({\nmodel: \"deepseek-ai/DeepSeek-V3\",\nmessages: [\n{\nrole: \"system\",\ncontent: \"Ты опытный HR-агент. Анализируй соответствие резюме и вакансий, давай краткое обоснование.\"\n},\n{\nrole: \"user\",\ncontent: \"Вакансия:\\n\" + $json.body.jobDescription + \"\\n\\nРезюме:\\n\" + $json.body.resume + \"\\n\\nПроанализируй и оцени: Подходит / Частично подходит / Не подходит. Объясни почему. В ответе используй одинаковый кегль, но дели текст по параграфам по смыслу. Хочу, чтобы ты отвечал без разметки markdown\"\n}\n],\ntemperature: 0.3,\nmax_tokens: 500\n})\n}}",
+        "jsonBody": "={{\nJSON.stringify({\nmodel: \"deepseek-ai/DeepSeek-V3\",\nmessages: [\n{\nrole: \"system\",\ncontent: \"Ты опытный и дружелюбный HR-агент. Анализируй соответствие резюме и вакансий, давай краткое обоснование. Используй только русский язык.\"\n},\n{\nrole: \"user\",\ncontent: \"Вакансия:\\n\" + $json.body.jobDescription + \"\\n\\nРезюме:\\n\" + $json.body.resume + \"\\n\\nПроанализируй и оцени: Подходит / Частично подходит / Не подходит. Объясни почему. В ответе используй одинаковый кегль, но дели текст по параграфам по смыслу. Хочу, чтобы ты отвечал без разметки markdown. Будь кратким и объективным, но дружелюбным. Не забывай подчёркивать плюсы в пользу кандидата, если у него есть потенциал. Если резюме нет, попроси его добавить.\"\n}\n],\ntemperature: 0.5,\nmax_tokens: 1000\n})\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        200,
+        220,
         0
       ],
       "id": "a9c344d6-7acf-4de0-a1c5-ce75b90fbef1",
@@ -66,15 +66,15 @@
     },
     {
       "parameters": {
-        "content": "## 1. Сравнить резюме с вакансией \n**В терминале** запускаем команду с текстом вакансии и резюме:\ncurl -X POST \"https://elisele.app.n8n.cloud/webhook-test/test-hr\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"jobDescription\": \"Ждем талантливых спортсменов интересующихся футболом и каратэ от 16 лет\", \"resume\": \"Играю в футбол мне 15 лет\" }'\n",
-        "height": 180,
+        "content": "## 1. Сравнить резюме с вакансией ",
+        "height": 80,
         "width": 520,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -660,
-        -40
+        0
       ],
       "typeVersion": 1,
       "id": "7670428b-f2f3-4e2b-a62f-b4dde057ad5d",
@@ -82,15 +82,15 @@
     },
     {
       "parameters": {
-        "content": "## 2. Вопросы кандидатам\ncurl -X POST https://elisele.app.n8n.cloud/webhook-test/jobDescription \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobDescription\": \"Требуется кассир на ночные смены в супермаркет оплата почасовая по договоренности\"\n  }'",
-        "height": 220,
+        "content": "## 2. Вопросы кандидатам",
+        "height": 80,
         "width": 520,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -660,
-        220
+        260
       ],
       "typeVersion": 1,
       "id": "038e2d62-5e2f-4542-989a-e4ee2c623ecd",
@@ -128,7 +128,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты опытный HR-интервьюер. На основе описания вакансии формируй качественные вопросы для интервью.\"\n    },\n    {\n      role: \"user\",\n      content: \"Ты опытный HR-интервьюер. На основе следующего описания вакансии сгенерируй 10 вопросов для интервью, разделив их по категориям:\\\\n\\\\n- Hard Skills\\\\n- Soft Skills\\\\n- Мотивация\\\\n- Поведенческие\\\\n\\\\nОписание вакансии:\\\\n\" + $json.body.jobDescription + \"\\\\n\\\\nСделай вопросы лаконичными и по делу. В ответе используй одинаковый кегль. Хочу чтобы ты отвечал без разметки markdown. \"\n    }\n  ],\n  temperature: 0.4,\n  max_tokens: 600\n})\n}}\n",
+        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты опытный HR-интервьюер. На основе описания вакансии формируй качественные вопросы для интервью. Используй только русский язык.\"\n    },\n    {\n      role: \"user\",\n      content: \"Ты опытный HR-интервьюер. На основе следующего описания вакансии сгенерируй 10 вопросов для интервью, разделив их по категориям:\\\\n\\\\n- Hard Skills\\\\n- Soft Skills\\\\n- Мотивация\\\\n- Поведенческие\\\\n\\\\nОписание вакансии:\\\\n\" + $json.body.jobDescription + \"\\\\n\\\\nСделай вопросы лаконичными и по делу. В ответе используй одинаковый кегль. Хочу чтобы ты отвечал без разметки markdown. Если описания вакансии нет, попроси его добавить. \"\n    }\n  ],\n  temperature: 0.6,\n  max_tokens: 600\n})\n}}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -159,15 +159,15 @@
     },
     {
       "parameters": {
-        "content": "## 3.  Составление текста вакансии по данным или доработка текста вакансии\n\ncurl -X POST https://elisele.app.n8n.cloud/webhook-test/textEditor \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"jobDescription\": \"Frontend Developer Разработка UI на React Опыт работы от 3 лет, знание React, TypeScript\"\n  }'",
-        "height": 240,
+        "content": "## 3.  Составление текста вакансии по данным или доработка текста вакансии",
+        "height": 100,
         "width": 520,
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         -660,
-        520
+        560
       ],
       "typeVersion": 1,
       "id": "c0dcfe6d-96b6-4f8b-a5f9-38906408e5c1",
@@ -188,7 +188,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты профессиональный HR-копирайтер. Генерируй и улучшай описания вакансий. Возвращай ответы строго в формате JSON, без лишнего текста, без обёртки, без кода, без ```json и без пояснений.\"\n    },\n    {\n      role: \"user\",\n      content:\n        \"На вход ты получаешь:\\n\" +\n        \"- Оптсание вакансии: \" + $json.body.jobDescription + \"\\n\" +\n        ($json.body.originalDescription ? \"- Исходное описание: \" + $json.body.originalDescription + \"\\n\" : \"\") +\n        \"\\nТвоя задача:\\n\" +\n        \"1. Если исходного описания нет или его недостаточно — сгенерируй новое описание вакансии.\\n\" +\n        \"2. Если оно есть — предложи улучшенные варианты.\\n\\n\" +\n        \"Ответ верни строго как валидный JSON без обёртки, без кода, без ```json и без пояснений.\\n\\n\" +\n        \"Следуй формату:\\n\\n\" +\n        `{\n  \"original\": \"Новое или улучшенное описание вакансии\",\n  \"variant_engaging\": \"Более привлекательный вариант\",\n  \"variant_simple\": \"Упрощённый вариант\",\n  \"variant_technical\": \"Технически точный вариант\"\n}`\n    }\n  ],\n  temperature: 0.4,\n  max_tokens: 700\n}) \n}}",
+        "jsonBody": "={{ \nJSON.stringify({\n  model: \"deepseek-ai/DeepSeek-V3\",\n  messages: [\n    {\n      role: \"system\",\n      content: \"Ты профессиональный HR-копирайтер. Генерируй и улучшай описания вакансий. Возвращай ответы строго в формате JSON, без лишнего текста, без обёртки, без кода, без пояснений, без ```json. Используй только русский язык.\"\n    },\n    {\n      role: \"user\",\n      content:\n        \"На вход ты получаешь:\\n\" +\n        \"- Описание вакансии: \" + $json.body.jobDescription + \"\\n\" +\n        \"Твоя задача:\\n\" +\n        \"1. Если исходного описания нет — попроси его добавить.\\n\" +\n        \"2. Если оно есть — предложи улучшенные варианты: более привлекательный, более упрощённый для неспециалистов и более технический.\\n\\n\" +\n        \"Ответ верни строго как валидный JSON без обёртки, без кода и без пояснений. Не используй разметку markdown.\\n\\n\" +\n        \"Следуй формату:\\n\" + \n        \"Привлекательный вариант: ... \\n\" +\n        \"Упрощённый вариант: ... \\n\" +\n        \"Технически точный вариант: ... \"\n    }\n  ],\n  temperature: 0.7,\n  max_tokens: 1500\n}) \n}}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -220,7 +220,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "={\n  \"result\": {{$node[\"HTTP Request2\"].json[\"choices\"][0][\"message\"][\"content\"]}}\n}",
+        "responseBody": "={{$node[\"HTTP Request2\"].json[\"choices\"][0][\"message\"][\"content\"]}}",
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
@@ -307,11 +307,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7e0886bd-c613-468c-b265-8c9995569fa2",
+  "versionId": "44d8f376-9c20-4970-9bee-a38ce88ce023",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "56c0e4473e29d4ff61294cd1122a3e6cda6cadddc35f0b6809e0f5010adeb641"
